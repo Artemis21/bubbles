@@ -18,12 +18,6 @@ export default class Vec2 {
         return new Vec2(this.x / scalar, this.y / scalar);
     }
 
-    /** Increment this vector in-place by another vector. */
-    inc(other: Vec2): void {
-        this.x += other.x;
-        this.y += other.y;
-    }
-
     /**
      * @returns The magnitude of this vector.
      */

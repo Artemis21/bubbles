@@ -1,28 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bubble: PageRank Playground</title>
-  </head>
-  <body class="pagerank">
-    <div class="sidebar">
-      <h1 class="sidebar__title">Bubbles</h1>
-      <h2 class="sidebar__tagline">A PageRank Playground.</h2>
-      <p class="sidebar__description">
-        Double-click anywhere on the graph to add a new page. Click and drag from
-        one page to another to create a link between them. Shift + click on a page
-        to delete it. Click on a link to delete it. Have fun :&rpar;
-      </p>
-      <label for="damping">Damping Factor: <span id="dampingReport">0.85</span></label>
-      <input type="range" id="damping" min="0" max="1" step="0.01" value="0.85" />
-      <div class="sidebar__buttons">
-        <button id="clear" class="sidebar__button">Clear Graph</button>
-        <button id="reset" class="sidebar__button">Reset Scores</button>
-      </div>
-      <div class="sidebar__attr">&copy; Artemis V, 2023</div>
-    </div>
-    <div class="graph" id="graph"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Bubble: PageRank Playground</title>
+    </head>
+    <body class="pagerank">
+        <div class="sidebar">
+            <h1 class="sidebar__title">Bubbles</h1>
+            <h2 class="sidebar__tagline">A PageRank Playground.</h2>
+            <p class="sidebar__description">
+                Double-click anywhere on the graph to add a new page. Click and drag
+                from one page to another to create a link between them. Shift + click on
+                a page to delete it. Click on a link to delete it. Have fun :&rpar;
+            </p>
+            <label for="damping"
+                >Damping Factor: <span id="dampingReport">0.85</span></label
+            >
+            <input type="range" id="damping" min="0" max="1" step="0.01" value="0.85" />
+            <div class="sidebar__buttons">
+                <button id="clear" class="sidebar__button">Clear Graph</button>
+                <button id="reset" class="sidebar__button">Reset Scores</button>
+            </div>
+            <div class="sidebar__attr">&copy; Artemis V, 2023</div>
+        </div>
+        <div class="graph" id="graph"></div>
+        <script type="module" src="/src/main.ts"></script>
+    </body>
 </html>

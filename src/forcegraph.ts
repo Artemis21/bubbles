@@ -7,7 +7,7 @@ class Particle {
      * The size of the particle - this determines how close other particles are
      * allowed to get to it.
      */
-    public size: number = 1;
+    public size = 1;
 
     /** The current position of the particle. */
     public pos: Vec2 = Vec2.randomUnit();
@@ -26,28 +26,35 @@ class Particle {
      */
     move(accel: Vec2, damping: number): void {
         this.vel = this.vel.add(accel).mul(damping);
-        this.pos.inc(this.vel);
+        this.pos = this.pos.add(this.vel);
     }
 }
 
 /** Simulation settings for a force-directed spring graph. */
-type Settings = {
+interface Settings {
     /**
      * The spring constant controls the strength with which each spring pulls. Since this is the
      * same for all springs it should not have a huge effect on the positions particles settle in,
      * but higher values might make particles settle more quickly. Conversely higher values might
      * make particles more likely to "overshoot", so I'm not sure - more experimentation is needed.
      *
-     * The default value is `0.01`.
+     * The default value is `0.005`.
      */
-    springConstant?: number,
+    springConstant?: number;
+    /**
+     * How many times stronger a spring should be when it is pushing two particles apart as opposed
+     * to pulling them together. This can be any value >0.
+     *
+     * The default value is `10`.
+     */
+    repulsionFactor?: number;
     /**
      * How much space particles should have around them in square units. This acts more like an
      * upper bound, set the `size` of particles for a lower bound.
      *
      * The default value is `100`.
-     */ 
-    targetDensity?: number,
+     */
+    targetDensity?: number;
     /**
      * A value by which velocity is multiplied each tick, used to simulate energy dissipation due
      * to air resistance etc. The simulation should settle into a stable state when
@@ -55,13 +62,14 @@ type Settings = {
      *
      * The default value is `0.9`.
      */
-    damping?: number,
+    damping?: number;
 }
 
 /** A class for simulating a force-directed spring graph. */
 export default class Graph {
     /** All the particles in the graph. */
     public particles: Particle[] = [];
+
     /**
      * The weights connecting each pair of particles.
      *
@@ -70,12 +78,16 @@ export default class Graph {
      * The maximum weight between two particles is used. The weight represents the strength of the
      * spring connecting the two particles - the default is 0, which means there is no spring.
      */
-    private weights: Map<string, number> = new Map();
+    private weights = new Map<string, number>();
 
     // Settings, explained in the Settings type.
     private springConstant: number;
+
     private targetDensity: number;
+
     private damping: number;
+
+    private repulsionFactor: number;
 
     /**
      * Create a new, empty graph.
@@ -83,20 +95,22 @@ export default class Graph {
      * @param settings The settings for the simulation.
      */
     constructor({
-        springConstant = 0.01,
+        springConstant = 0.005,
         targetDensity = 100,
         damping = 0.9,
+        repulsionFactor = 10,
     }: Settings = {}) {
         this.springConstant = springConstant;
         this.targetDensity = targetDensity;
         this.damping = damping;
+        this.repulsionFactor = repulsionFactor;
     }
 
     private getParticle(name: string): Particle | undefined {
         return this.particles.find(p => p.name === name);
     }
 
-    private pairKey(a: Particle, b: Particle): string {
+    private static pairKey(a: Particle, b: Particle): string {
         return `${a.name}\0${b.name}`;
     }
 
@@ -108,10 +122,11 @@ export default class Graph {
         this.particles = this.particles.filter(p => p.name !== name);
     }
 
-    /** Change the size of a particle.
+    /**
+     * Change the size of a particle.
      *
      * This determines how close other particles are allowed to get to it - the default is 1.
-     * 
+     *
      * @param name The name of the particle to resize.
      * @param size The new size of the particle.
      */
@@ -120,11 +135,12 @@ export default class Graph {
         if (particle) {
             particle.size = size;
         } else {
-            console.error(`Tried to resize particle ${name} but it doesn't exist`);
+            throw new Error(`Tried to resize particle ${name} but it doesn't exist`);
         }
     }
 
-    /** Set the weight of the spring connecting two particles.
+    /**
+     * Set the weight of the spring connecting two particles.
      *
      * The weight represents the strength of the spring connecting the two particles - the default
      * is 0, which means there is no spring. The weight is the same for both directions, if you set
@@ -140,10 +156,11 @@ export default class Graph {
         const particleA = this.getParticle(a);
         const particleB = this.getParticle(b);
         if (!particleA || !particleB) {
-            console.error(`Tried to set weight between ${a} and ${b} but one or both don't exist`);
-            return;
+            throw new Error(
+                `Tried to set weight between ${a} and ${b} but one or both don't exist`,
+            );
         }
-        this.weights.set(this.pairKey(particleA, particleB), weight);
+        this.weights.set(Graph.pairKey(particleA, particleB), weight);
     }
 
     /** Force a particle to go to a specific point. */
@@ -152,7 +169,9 @@ export default class Graph {
         if (particle) {
             particle.pos = pos;
         } else {
-            console.error(`Tried to set position of particle ${name} but it doesn't exist`);
+            throw new Error(
+                `Tried to set position of particle ${name} but it doesn't exist`,
+            );
         }
     }
 
@@ -160,31 +179,35 @@ export default class Graph {
     private getWeight(a: Particle, b: Particle): number {
         return Math.max(
             0,
-            this.weights.get(this.pairKey(a, b)) || 0,
-            this.weights.get(this.pairKey(b, a)) || 0,
-        )
+            this.weights.get(Graph.pairKey(a, b)) ?? 0,
+            this.weights.get(Graph.pairKey(b, a)) ?? 0,
+        );
     }
 
     private particleAcceleration(particle: Particle): Vec2 {
-        const accel = new Vec2(0, 0);
-        for (const sibling of this.particles) {
-            if (sibling === particle) {
-                continue;
-            }
-            const weight = this.getWeight(particle, sibling);
-            const minDistance = particle.size + sibling.size;
-            const maxDistance = Math.sqrt(this.particles.length) * this.targetDensity;
-            const springLength = Math.max(maxDistance - weight, minDistance);
-            let force = this.springConstant * (particle.pos.distance(sibling.pos) - springLength);
-            let direction = sibling.pos.sub(particle.pos).asUnit();
-            accel.inc(direction.mul(force));
-        }
-        return accel;
+        return this.particles
+            .filter(p => p !== particle)
+            .map(sibling => {
+                const weight = this.getWeight(particle, sibling);
+                const minDistance = particle.size + sibling.size;
+                const maxDistance =
+                    Math.sqrt(this.particles.length) * this.targetDensity;
+                const springLength = Math.max(maxDistance - weight, minDistance);
+                const extension = particle.pos.distance(sibling.pos) - springLength;
+                let force = this.springConstant * extension;
+                if (force < 0) {
+                    force *= this.repulsionFactor;
+                }
+                const direction = sibling.pos.sub(particle.pos).asUnit();
+                return direction.mul(force);
+            })
+            .reduce((a, b) => a.add(b), new Vec2(0, 0));
     }
 
     /** Update the position of all particles after one iteration. */
     public step(): void {
-        this.particles.map<[Particle, Vec2]>(p => [p, this.particleAcceleration(p)])
+        this.particles
+            .map<[Particle, Vec2]>(p => [p, this.particleAcceleration(p)])
             .forEach(([p, a]) => p.move(a, this.damping));
     }
 }
