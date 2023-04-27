@@ -10,15 +10,22 @@
             <h1 class="sidebar__title">Bubbles</h1>
             <h2 class="sidebar__tagline">A PageRank Playground.</h2>
             <p class="sidebar__description">
-                Double-click anywhere on the graph to add a new page. Click and drag
-                from one page to another to create a link between them. Shift + click on
-                a page to delete it. Click on a link to delete it. Have fun :&rpar;
+                To add a new page, use the button below or double click anywhere on the
+                graph. Click and drag from one page to another to create a link between
+                them. You can delete pages or links either by clicking them and then
+                using the delete button below, or by shift + clicking them.
+                <br />
+                Have fun :&rpar;
             </p>
             <label for="damping"
                 >Damping Factor: <span id="dampingReport">0.85</span></label
             >
             <input type="range" id="damping" min="0" max="1" step="0.01" value="0.85" />
             <div class="sidebar__buttons">
+                <button id="addNode" class="sidebar__button">Add Page</button>
+                <button id="delete" class="sidebar__button" disabled>
+                    Delete: <span id="selectedReport">nothing selected</span>
+                </button>
                 <button id="clear" class="sidebar__button">Clear Graph</button>
                 <button id="reset" class="sidebar__button">Reset Scores</button>
             </div>

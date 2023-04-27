@@ -34,7 +34,13 @@ export default class Arrow extends ArrowBase {
     /** Render a new arrow, and register it with the relevant bubbles. */
     constructor(bubbles: Bubbles, public from: Bubble, public to: Bubble) {
         super(bubbles);
-        this.el.addEventListener("click", () => this.delete());
+        this.el.addEventListener("click", e => {
+            if (e.shiftKey) {
+                this.delete();
+            } else {
+                bubbles.select(this);
+            }
+        });
         from.arrowsFrom.push(this);
         to.arrowsTo.push(this);
         bubbles.fire("arrowCreate", from.name, to.name);
@@ -54,6 +60,16 @@ export default class Arrow extends ArrowBase {
         super.delete();
         this.from.arrowsFrom = this.from.arrowsFrom.filter(arrow => arrow !== this);
         this.to.arrowsTo = this.to.arrowsTo.filter(arrow => arrow !== this);
+    }
+
+    public select(): void {
+        this.el.classList.add("arrow--selected");
+        this.bubbles.fire("arrowSelect", this.from.name, this.to.name);
+    }
+
+    public deselect(): void {
+        this.el.classList.remove("arrow--selected");
+        this.bubbles.fire("arrowDeselect", this.from.name, this.to.name);
     }
 }
 

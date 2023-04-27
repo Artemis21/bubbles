@@ -66,6 +66,8 @@ export default class Bubble {
         this.el.addEventListener("click", e => {
             if (e.shiftKey) {
                 this.delete();
+            } else {
+                bubbles.select(this);
             }
         });
         this.update();
@@ -107,5 +109,15 @@ export default class Bubble {
         this.bubbles.parent.removeChild(this.el);
         this.bubbles.fire("bubbleDelete", this.name);
         this.bubbles.bubbles.delete(this.name);
+    }
+
+    public select(): void {
+        this.el.classList.add("bubble--selected");
+        this.bubbles.fire("bubbleSelect", this.name);
+    }
+
+    public deselect(): void {
+        this.el.classList.remove("bubble--selected");
+        this.bubbles.fire("bubbleDeselect", this.name);
     }
 }

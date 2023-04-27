@@ -18,9 +18,9 @@
 
 .sidebar__buttons
     display: flex
-    align-items: center
-    justify-content: space-evenly
-    gap: 2rem
+    flex-direction: column
+    align-items: stretch
+    gap: 1rem
     padding: 1rem
 
 .sidebar__button
@@ -29,11 +29,12 @@
     border: 1px solid #0004
     border-radius: 3px
     padding: 0.5rem 1rem
-    cursor: pointer
     transition: background 0.2s ease-in-out
 
-    &:hover
-        background: #0004
+    &:not([disabled])
+        cursor: pointer
+        &:hover
+            background: #0004
 
 .sidebar__attr
     flex-grow: 999

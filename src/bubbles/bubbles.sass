@@ -27,6 +27,9 @@
 .bubble:hover
     filter: brightness(120%)
 
+.bubble--selected
+    outline: 4px solid #002b36
+
 .bubble__name
     font-size: 1.3rem
 
@@ -35,12 +38,13 @@
     color: #fdf6e3
 
 .arrow
+    --colour: #002b36
     position: absolute
     width: var(--arrow-length)
     height: 5px
     // The end of the arrow will have an arrow head on top of it, don't let the
     // arrow tail get in the way, by using linear gradient to cut it off.
-    background: linear-gradient(to left, #0000 5px, #002b36 5px)
+    background: linear-gradient(to left, #0000 5px, var(--colour) 5px)
     transform: rotate(calc(1 * var(--arrow-angle)))
     transform-origin: top left
     top: calc(var(--arrow-y))
@@ -51,11 +55,13 @@
     justify-content: flex-end
     font-family: Roboto
 
+.arrow--selected
+    --colour: #268bd2
+
 .arrow:after
     content: ""
     width: 30px
     height: 30px
     mask: url("./arrowhead.svg")
-    background: #002b36
+    background: var(--colour)
     filter: blur(1px)  // Get rid of janky edges.
-

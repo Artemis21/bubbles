@@ -4,7 +4,15 @@ import Arrow from "./arrows";
 import Bubble from "./bubble";
 import Vec2 from "../vec2";
 
-export type Event = "bubbleCreate" | "bubbleDelete" | "arrowCreate" | "arrowDelete";
+export type Event =
+    | "bubbleCreate"
+    | "bubbleDelete"
+    | "bubbleSelect"
+    | "bubbleDeselect"
+    | "arrowCreate"
+    | "arrowDelete"
+    | "arrowSelect"
+    | "arrowDeselect";
 type Handler = (...args: string[]) => void;
 
 /** A class which manages rendering of all the bubbles and arrows. */
@@ -12,18 +20,27 @@ export default class Bubbles {
     /** All currently rendered bubbles, by name. */
     public bubbles = new Map<string, Bubble>();
 
+    /** The currently selected bubble or arrow, if any. */
+    public selected: Bubble | Arrow | null = null;
+
     /** Event handlers grouped by event. */
     private eventHandlers = new Map<string, Handler[]>();
+
+    /** The ID number for the next button. */
+    private nextId = 1;
 
     /** Create a new bubble renderer in the given element. */
     constructor(public parent: HTMLDivElement) {
         this.parent.classList.add("bubbles");
-        let nextId = 1;
-        parent.ondblclick = () => this.add(`Page ${nextId++}`);
+        parent.ondblclick = () => this.add();
+        parent.onclick = e => {
+            if (e.target === parent) this.select(null);
+        };
     }
 
-    /** Add a new bubble with the specified name (must be unique). */
-    public add(name: string): void {
+    /** Add a new bubble. */
+    public add(): void {
+        const name = `Page ${this.nextId++}`;
         this.bubbles.set(name, new Bubble(this, name));
     }
 
@@ -111,5 +128,18 @@ export default class Bubbles {
     public clear(): void {
         this.bubbles.forEach(bubble => bubble.delete());
         this.bubbles.clear();
+    }
+
+    /** Select the given bubble or arrow, or unselect it if already selected. */
+    public select(entity: Bubble | Arrow | null): void {
+        if (this.selected) {
+            this.selected.deselect();
+        }
+        if (this.selected === entity) {
+            this.selected = null;
+        } else if (entity) {
+            this.selected = entity;
+            this.selected.select();
+        }
     }
 }
